@@ -58,10 +58,13 @@ else
 fi
 
 ########################################
-####### INSTALL GOOP ###################
+####### INSTALL GO DEV TOOLS  ##########
 ########################################
 
 /usr/local/opt/go/bin/go get github.com/nitrous-io/goop
+/usr/local/opt/go/bin/go get code.google.com/p/go.tools/cmd/goimports
+/usr/local/opt/go/bin/go get github.com/onsi/ginkgo/ginkgo
+/usr/local/opt/go/bin/go get github.com/onsi/gomega
 
 ########################################
 ####### SETUP DOCKER ###################
