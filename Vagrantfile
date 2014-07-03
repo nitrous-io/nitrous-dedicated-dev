@@ -70,10 +70,8 @@ fi
 ####### SETUP DOCKER ###################
 ########################################
 
-if [ ! -f /usr/local/bin/docker ]; then
-  # Install Docker
-  curl -s https://get.docker.io/ubuntu/ | sudo sh
-fi
+# Install Docker
+curl -s https://get.docker.io/ubuntu/ | sudo sh
 
 cat > /etc/default/docker <<EOF
 #Docker Upstart and SysVinit configuration file
