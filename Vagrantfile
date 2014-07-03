@@ -143,13 +143,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.vmx['numvcpus'] = ENV['DEDICATED_VM_CPU'] || '2'
   end
 
-  if private_ip = ENV['FREIGHTER_INTERFACE']
+  if private_ip = ENV['DEDICATED_VM_INTERFACE']
     config.vm.network :private_network, ip: private_ip
   end
 
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'" # avoids 'stdin: is not a tty' error.
   config.ssh.forward_agent = true
   config.ssh.private_key_path = %w(~/.ssh/id_rsa ~/.vagrant.d/insecure_private_key)
-  config.vm.provision 'file', source: '~/.ssh/id_rsa.pub', destination: '/home/vagrant/.ssh/id_rsa.pub'
   config.vm.provision 'shell', inline: $script
 end
