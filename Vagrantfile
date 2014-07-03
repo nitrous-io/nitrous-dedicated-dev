@@ -99,31 +99,33 @@ adduser vagrant docker
 
 # Install all sources
 mkdir -p /home/vagrant/go/src/github.com/nitrous-io/
+mkdir -p /home/vagrant/workspace
 
 ssh -T git@github.com -o StrictHostKeyChecking=no && echo 'Success'
 
 cd /home/vagrant/go/src/github.com/nitrous-io/
 if [ ! -d nitrous ]; then
   git clone git@github.com:nitrous-io/nitrous.git
-  ln -fs /home/vagrant/go/src/github.com/nitrous-io/nitrous /home/vagrant/nitrous
+  ln -fs /home/vagrant/go/src/github.com/nitrous-io/nitrous /home/vagrant/workspace/nitrous
 fi
 
 if [ ! -d freighter ]; then
   git clone git@github.com:nitrous-io/freighter.git
-  ln -fs /home/vagrant/go/src/github.com/nitrous-io/freighter /home/vagrant/freighter
+  ln -fs /home/vagrant/go/src/github.com/nitrous-io/freighter /home/vagrant/workspace/freighter
 fi
 
 if [ ! -d hostbuilder ]; then
   git clone git@github.com:nitrous-io/hostbuilder.git
-  ln -fs /home/vagrant/go/src/github.com/nitrous-io/hostbuilder /home/vagrant/hostbuilder
+  ln -fs /home/vagrant/go/src/github.com/nitrous-io/hostbuilder /home/vagrant/workspace/hostbuilder
 fi
 
 if [ ! -d nitro ]; then
   git clone git@github.com:nitrous-io/nitro.git
-  ln -fs /home/vagrant/go/src/github.com/nitrous-io/nitro /home/vagrant/nitro
+  ln -fs /home/vagrant/go/src/github.com/nitrous-io/nitro /home/vagrant/workspace/nitro
 fi
 
 sudo chown -R vagrant:vagrant $VAGRANT_HOME/go
+sudo chown -R vagrant:vagrant $VAGRANT_HOME/workspace
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
