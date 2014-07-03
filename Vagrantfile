@@ -73,7 +73,7 @@ fi
 # Install Docker
 curl -s https://get.docker.io/ubuntu/ | sudo sh
 
-cat > /etc/default/docker <<EOF
+cat > /etc/default/docker.io <<EOF
 #Docker Upstart and SysVinit configuration file
 
 # Customize location of Docker binary (especially for development testing).
