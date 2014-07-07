@@ -89,6 +89,14 @@ su -l -c 'git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/p
 su -l -c "rbenv install 2.1.2 && rbenv global 2.1.2" vagrant
 su -l -c "gem install bundler && rbenv rehash" vagrant
 
+#####################################
+####### INSTALL NODE ################
+#####################################
+
+echo "Installing node..."
+
+sudo apt-get install -yy --no-install-recommends nodejs
+
 ###########################################
 ####### INSTALL COMPONENTS ################
 ###########################################
