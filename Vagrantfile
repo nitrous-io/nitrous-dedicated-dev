@@ -7,6 +7,8 @@ $script = <<SCRIPT
 export VAGRANT_HOME=/home/vagrant
 export GOPATH=$VAGRANT_HOME/go
 export GOROOT=/usr/local/opt/go
+export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+export WORKSPACE=$VAGRANT_HOME/workspace
 
 ########################################
 ####### INSTALL APT DEPS ###############
@@ -46,10 +48,10 @@ fi
 ####### INSTALL GO DEV TOOLS  ##########
 ########################################
 
-/usr/local/opt/go/bin/go get github.com/nitrous-io/goop
-/usr/local/opt/go/bin/go get code.google.com/p/go.tools/cmd/goimports
-/usr/local/opt/go/bin/go get github.com/onsi/ginkgo/ginkgo
-/usr/local/opt/go/bin/go get github.com/onsi/gomega
+go get github.com/nitrous-io/goop
+go get code.google.com/p/go.tools/cmd/goimports
+go get github.com/onsi/ginkgo/ginkgo
+go get github.com/onsi/gomega
 
 ########################################
 ####### SETUP DOCKER ###################
@@ -83,8 +85,6 @@ adduser vagrant docker
 ########################################
 
 # Install all sources
-mkdir -p /home/vagrant/go/src/github.com/nitrous-io/
-mkdir -p /home/vagrant/workspace
 
 ssh -T git@github.com -o StrictHostKeyChecking=no && echo 'Success'
 
@@ -108,9 +108,11 @@ if [ ! -d nitro ]; then
   git clone git@github.com:nitrous-io/nitro.git
   ln -fs /home/vagrant/go/src/github.com/nitrous-io/nitro /home/vagrant/workspace/nitro
 fi
+mkdir -p $GOPATH/src/github.com/nitrous-io
+mkdir -p $WORKSPACE
 
-sudo chown -R vagrant:vagrant $VAGRANT_HOME/go
-sudo chown -R vagrant:vagrant $VAGRANT_HOME/workspace
+sudo chown -R vagrant:vagrant $GOPATH
+sudo chown -R vagrant:vagrant $WORKSPACE
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
