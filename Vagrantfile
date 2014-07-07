@@ -77,9 +77,6 @@ service docker restart
 
 adduser vagrant docker
 
-########################################
-####### INSTALL SOURCES ################
-########################################
 
 ###########################################
 ####### INSTALL COMPONENTS ################
@@ -87,30 +84,25 @@ adduser vagrant docker
 
 echo "Installing components..."
 
+git config --global url.ssh://git@github.com/.insteadOf https://github.com/
 ssh -T git@github.com -o StrictHostKeyChecking=no && echo 'Success'
 
-cd /home/vagrant/go/src/github.com/nitrous-io/
-if [ ! -d nitrous ]; then
-  git clone git@github.com:nitrous-io/nitrous.git
-  ln -fs /home/vagrant/go/src/github.com/nitrous-io/nitrous /home/vagrant/workspace/nitrous
-fi
+install_component() {
+  component=$1
+  if [ ! -d $component ]; then
+    (cd $GOPATH/src/github.com/nitrous-io && git clone git@github.com:nitrous-io/$component.git)
+    (cd $GOPATH/src/github.com/nitrous-io/$component && goop install)
+    ln -fs $GOPATH/src/github.com/nitrous-io/$component $WORKSPACE/$component
+  fi
+}
 
-if [ ! -d freighter ]; then
-  git clone git@github.com:nitrous-io/freighter.git
-  ln -fs /home/vagrant/go/src/github.com/nitrous-io/freighter /home/vagrant/workspace/freighter
-fi
-
-if [ ! -d hostbuilder ]; then
-  git clone git@github.com:nitrous-io/hostbuilder.git
-  ln -fs /home/vagrant/go/src/github.com/nitrous-io/hostbuilder /home/vagrant/workspace/hostbuilder
-fi
-
-if [ ! -d nitro ]; then
-  git clone git@github.com:nitrous-io/nitro.git
-  ln -fs /home/vagrant/go/src/github.com/nitrous-io/nitro /home/vagrant/workspace/nitro
-fi
 mkdir -p $GOPATH/src/github.com/nitrous-io
 mkdir -p $WORKSPACE
+
+install_component nitrous
+install_component freighter
+install_component hostbuilder
+install_component nitro
 
 sudo chown -R vagrant:vagrant $GOPATH
 sudo chown -R vagrant:vagrant $WORKSPACE
