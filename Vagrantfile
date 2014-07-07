@@ -48,6 +48,7 @@ go get github.com/nitrous-io/goop
 go get code.google.com/p/go.tools/cmd/goimports
 go get github.com/onsi/ginkgo/ginkgo
 go get github.com/onsi/gomega
+go get github.com/ddollar/forego
 
 ########################################
 ####### SETUP DOCKER ###################
