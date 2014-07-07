@@ -126,6 +126,14 @@ install_component nitro
 
 sudo chown -R vagrant:vagrant $GOPATH
 sudo chown -R vagrant:vagrant $WORKSPACE
+
+########################################
+####### COMPONENT SETUP ################
+########################################
+
+cd $WORKSPACE/nitrous
+cp .env-example .env
+
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
