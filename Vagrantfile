@@ -77,6 +77,17 @@ service docker restart
 
 adduser vagrant docker
 
+#####################################
+####### INSTALL RUBY ################
+#####################################
+
+echo "Installing ruby..."
+
+echo "export PATH=\\$HOME/.rbenv/shims:\\$PATH" >> /etc/profile
+sudo apt-get install -yy --no-install-recommends rbenv
+su -l -c 'git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/plugins/ruby-build' vagrant
+su -l -c "rbenv install 2.1.2 && rbenv global 2.1.2" vagrant
+su -l -c "gem install bundler && rbenv rehash" vagrant
 
 ###########################################
 ####### INSTALL COMPONENTS ################
