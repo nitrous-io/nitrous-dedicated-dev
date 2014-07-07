@@ -4,21 +4,6 @@
 VAGRANTFILE_API_VERSION = '2'
 
 $script = <<SCRIPT
-if [[ ! -e /etc/ssh/.ssh_regen_done ]]; then
-  mkdir -p /home/vagrant/.ssh
-  chmod 0700 /home/vagrant/.ssh
-  chown -R vagrant:vagrant /home/vagrant/.ssh
-
-  echo "#{File.read "#{Dir.home}/.ssh/id_rsa.pub"}" > /home/vagrant/.ssh/authorized_keys
-  sed -ri 's|#PasswordAuthentication yes|PasswordAuthentication no|' /etc/ssh/sshd_config
-  rm -rf /etc/ssh/ssh_host_*
-  ssh-keygen -A
-  ssh-keygen -b 2048 -t rsa -C 'vagrant@dedicated' -f /home/vagrant/.ssh/id_rsa -N ''
-  service ssh restart
-
-  touch /etc/ssh/.ssh_regen_done
-fi
-
 export VAGRANT_HOME=/home/vagrant
 export GOPATH=$VAGRANT_HOME/go
 export GOROOT=/usr/local/opt/go
@@ -151,6 +136,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'" # avoids 'stdin: is not a tty' error.
   config.ssh.forward_agent = true
-  config.ssh.private_key_path = %w(~/.ssh/id_rsa ~/.vagrant.d/insecure_private_key)
   config.vm.provision 'shell', inline: $script
 end
