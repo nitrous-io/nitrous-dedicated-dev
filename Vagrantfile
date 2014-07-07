@@ -14,11 +14,15 @@ export WORKSPACE=$VAGRANT_HOME/workspace
 ####### INSTALL APT DEPS ###############
 ########################################
 
+echo "Installing apt dependencies..."
+
 apt-get install -yy --no-install-recommends lxc build-essential curl git-core mercurial postgresql-9.3 postgresql-contrib-9.3 libpq-dev
 
 ########################################
 ####### CONFIGURE PG ###################
 ########################################
+
+echo "Configuring postgres..."
 
 sudo su postgres -c 'psql -c "CREATE ROLE vagrant NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN;"'
 
@@ -31,6 +35,7 @@ install_go() {
   mkdir -p $GOROOT
   curl -s https://storage.googleapis.com/golang/go1.2.2.linux-amd64.tar.gz | tar -v -C /usr/local/opt -xz
 }
+echo "Installing go..."
 
 if [[ ! -e $GOROOT/bin/go ]]; then
   install_go
@@ -48,6 +53,8 @@ fi
 ####### INSTALL GO DEV TOOLS  ##########
 ########################################
 
+echo "Installing dev tools..."
+
 go get github.com/nitrous-io/goop
 go get code.google.com/p/go.tools/cmd/goimports
 go get github.com/onsi/ginkgo/ginkgo
@@ -57,7 +64,8 @@ go get github.com/onsi/gomega
 ####### SETUP DOCKER ###################
 ########################################
 
-# Install Docker
+echo "Installing docker..."
+
 curl -s https://get.docker.io/ubuntu/ | sudo sh
 
 cat > /etc/default/docker.io <<EOF
@@ -84,7 +92,11 @@ adduser vagrant docker
 ####### INSTALL SOURCES ################
 ########################################
 
-# Install all sources
+###########################################
+####### INSTALL COMPONENTS ################
+###########################################
+
+echo "Installing components..."
 
 ssh -T git@github.com -o StrictHostKeyChecking=no && echo 'Success'
 
