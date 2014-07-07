@@ -131,8 +131,14 @@ sudo chown -R vagrant:vagrant $WORKSPACE
 ####### COMPONENT SETUP ################
 ########################################
 
+cd $WORKSPACE/hostbuilder
+cp sample_config.json config.json
+chown vagrant:vagrant config.json
+
 cd $WORKSPACE/nitrous
 cp .env-example .env
+chown vagrant:vagrant .env
+make createdb
 
 SCRIPT
 
