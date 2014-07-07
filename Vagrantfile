@@ -30,24 +30,13 @@ sudo su postgres -c 'psql -c "CREATE ROLE vagrant NOSUPERUSER CREATEDB NOCREATER
 ####### INSTALL GO #####################
 ########################################
 
-install_go() {
-  echo "Installing Go..."
-  mkdir -p $GOROOT
-  curl -s https://storage.googleapis.com/golang/go1.2.2.linux-amd64.tar.gz | tar -v -C /usr/local/opt -xz
-}
 echo "Installing go..."
 
-if [[ ! -e $GOROOT/bin/go ]]; then
-  install_go
-  echo "export GOPATH=$GOPATH" >> /etc/profile
-  echo "export GOROOT=$GOROOT" >> /etc/profile
-  echo "export PATH=$GOPATH/bin:$GOROOT/bin:/usr/local/opt/go/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin" >> /etc/profile
-else
-  if [[ ! $(go version | grep go1.2) ]]; then
-    install_go
-    rm -rf $GOPATH/pkg $GOPATH/bin
-  fi
-fi
+mkdir -p $GOROOT
+curl -s https://storage.googleapis.com/golang/go1.2.2.linux-amd64.tar.gz | tar -C /usr/local/opt -xz
+echo "export GOPATH=$GOPATH" >> /etc/profile
+echo "export GOROOT=$GOROOT" >> /etc/profile
+echo "export PATH=$GOPATH/bin:$GOROOT/bin:\\$PATH" >> /etc/profile
 
 ########################################
 ####### INSTALL GO DEV TOOLS  ##########
