@@ -166,4 +166,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'" # avoids 'stdin: is not a tty' error.
   config.ssh.forward_agent = true
   config.vm.provision 'shell', inline: $script
+
+  config.vm.synced_folder "workspace/", "/home/vagrant/go/src/github.com/nitrous-io", create:true
 end

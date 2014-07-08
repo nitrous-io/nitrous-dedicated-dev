@@ -71,3 +71,4 @@ tramp
 
 # Vagrant
 .vagrant
+/workspace
