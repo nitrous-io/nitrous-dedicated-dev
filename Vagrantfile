@@ -111,8 +111,8 @@ install_component() {
   component=$1
   if [ ! -d $component ]; then
     (cd $GOPATH/src/github.com/nitrous-io && git clone git@github.com:nitrous-io/$component.git)
-    (cd $GOPATH/src/github.com/nitrous-io/$component && goop install)
     ln -fs $GOPATH/src/github.com/nitrous-io/$component $WORKSPACE/$component
+    (cd $WORKSPACE/$component && goop install)
   fi
 }
 
