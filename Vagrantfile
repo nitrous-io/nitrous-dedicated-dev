@@ -86,9 +86,11 @@ echo "Installing ruby..."
 
 echo "export PATH=\\$HOME/.rbenv/shims:\\$PATH" >> /etc/profile
 sudo apt-get install -yy --no-install-recommends rbenv
-su -l -c 'git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/plugins/ruby-build' vagrant
-su -l -c "rbenv install 2.1.2 && rbenv global 2.1.2" vagrant
-su -l -c "gem install bundler && rbenv rehash" vagrant
+sudo -u vagrant bash <<EOF
+  git clone https://github.com/sstephenson/ruby-build.git $VAGRANT_HOME/.rbenv/plugins/ruby-build
+  rbenv install 2.1.2 && rbenv global 2.1.2
+  gem install bundler && rbenv rehash
+EOF
 
 #####################################
 ####### INSTALL NODE ################
@@ -131,14 +133,17 @@ sudo chown -R vagrant:vagrant $WORKSPACE
 ####### COMPONENT SETUP ################
 ########################################
 
-cd $WORKSPACE/hostbuilder
-cp sample_config.json config.json
-chown vagrant:vagrant config.json
+sudo -u vagrant bash <<EOF
 
-cd $WORKSPACE/nitrous
-cp .env-example .env
-chown vagrant:vagrant .env
-make createdb
+  cd $WORKSPACE/hostbuilder
+  cp sample_config.json config.json
+
+  cd $WORKSPACE/nitrous
+  cp .env-example .env
+  make createdb
+
+EOF
+
 
 SCRIPT
 
