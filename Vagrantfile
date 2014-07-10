@@ -86,9 +86,12 @@ echo "Installing ruby..."
 
 echo "export PATH=\\$HOME/.rbenv/shims:\\$PATH" >> /etc/profile
 sudo apt-get install -yy --no-install-recommends rbenv
-su -l -c 'git clone https://github.com/sstephenson/ruby-build.git $HOME/.rbenv/plugins/ruby-build' vagrant
-su -l -c "rbenv install 2.1.2 && rbenv global 2.1.2" vagrant
-su -l -c "gem install bundler && rbenv rehash" vagrant
+sudo -u vagrant bash <<EOF
+  export HOME=$VAGRANT_HOME
+  git clone https://github.com/sstephenson/ruby-build.git $VAGRANT_HOME/.rbenv/plugins/ruby-build
+  rbenv install 2.1.2 && rbenv global 2.1.2
+  gem install bundler && rbenv rehash
+EOF
 
 #####################################
 ####### INSTALL NODE ################
@@ -111,8 +114,8 @@ install_component() {
   component=$1
   if [ ! -d $component ]; then
     (cd $GOPATH/src/github.com/nitrous-io && git clone git@github.com:nitrous-io/$component.git)
-    (cd $GOPATH/src/github.com/nitrous-io/$component && goop install)
     ln -fs $GOPATH/src/github.com/nitrous-io/$component $WORKSPACE/$component
+    (cd $WORKSPACE/$component && goop install)
   fi
 }
 
@@ -131,14 +134,17 @@ sudo chown -R vagrant:vagrant $WORKSPACE
 ####### COMPONENT SETUP ################
 ########################################
 
-cd $WORKSPACE/hostbuilder
-cp sample_config.json config.json
-chown vagrant:vagrant config.json
+sudo -u vagrant bash <<EOF
 
-cd $WORKSPACE/nitrous
-cp .env-example .env
-chown vagrant:vagrant .env
-make createdb
+  cd $WORKSPACE/hostbuilder
+  cp sample_config.json config.json
+
+  cd $WORKSPACE/nitrous
+  cp .env-example .env
+  make createdb
+
+EOF
+
 
 SCRIPT
 
@@ -166,4 +172,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'" # avoids 'stdin: is not a tty' error.
   config.ssh.forward_agent = true
   config.vm.provision 'shell', inline: $script
+
+  config.vm.synced_folder "workspace/", "/home/vagrant/go/src/github.com/nitrous-io", create:true
 end
