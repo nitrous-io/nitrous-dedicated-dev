@@ -33,7 +33,7 @@ sudo su postgres -c 'psql -c "CREATE ROLE vagrant NOSUPERUSER CREATEDB NOCREATER
 echo "Installing go..."
 
 mkdir -p $GOROOT
-curl -s https://storage.googleapis.com/golang/go1.2.2.linux-amd64.tar.gz | tar -C /usr/local/opt -xz
+curl -s https://storage.googleapis.com/golang/go1.3.linux-amd64.tar.gz | tar -C /usr/local/opt -xz
 echo "export GOPATH=$GOPATH" >> /etc/profile
 echo "export GOROOT=$GOROOT" >> /etc/profile
 echo "export PATH=$GOPATH/bin:$GOROOT/bin:\\$PATH" >> /etc/profile
