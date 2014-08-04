@@ -4,31 +4,37 @@
 VAGRANTFILE_API_VERSION = '2'
 
 $script = <<SCRIPT
+
 export VAGRANT_HOME=/home/vagrant
 export GOPATH=$VAGRANT_HOME/go
 export GOROOT=/usr/local/opt/go
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 export WORKSPACE=$VAGRANT_HOME/workspace
 
-########################################
-####### INSTALL APT DEPS ###############
-########################################
+## INSTALL APT DEPENDENCIES ##################################################
 
 echo "Installing apt dependencies..."
 
+apt-get update
 apt-get install -yy --no-install-recommends lxc build-essential curl git-core mercurial postgresql-9.3 postgresql-contrib-9.3 libpq-dev
 
-########################################
-####### CONFIGURE PG ###################
-########################################
+## CONFIGURE POSTGRESQL ######################################################
 
 echo "Configuring postgres..."
 
 sudo su postgres -c 'psql -c "CREATE ROLE vagrant NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN;"'
 
-########################################
-####### INSTALL GO #####################
-########################################
+## CONFIGURE MERCURIAL #######################################################
+
+echo "Configuring mercurial..."
+
+cat >$HOME/.hgrc <<EOF
+[trusted]
+users = vagrant
+groups = vagrant
+EOF
+
+## INSTALL GO ################################################################
 
 echo "Installing go..."
 
@@ -38,93 +44,84 @@ echo "export GOPATH=$GOPATH" >> /etc/profile
 echo "export GOROOT=$GOROOT" >> /etc/profile
 echo "export PATH=$GOPATH/bin:$GOROOT/bin:\\$PATH" >> /etc/profile
 
-########################################
-####### INSTALL GO DEV TOOLS  ##########
-########################################
+## INSTALL TOOLS #############################################################
 
-echo "Installing dev tools..."
+echo "Installing tools..."
 
 go get github.com/nitrous-io/goop
 go get code.google.com/p/go.tools/cmd/goimports
 
-########################################
-####### SETUP DOCKER ###################
-########################################
+## INSTALL DOCKER ############################################################
 
-# Check that HTTPS transport is available to APT
-if [ ! -e /usr/lib/apt/methods/https ]; then
-  apt-get update
-  apt-get install -y apt-transport-https
-fi
-# Add the repository to your APT sources
+echo "Installing docker..."
+
+apt-get install -y apt-transport-https
 echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list
-# Then import the repository key
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
-# Install docker
 apt-get update
-
 apt-get install -yy lxc-docker-1.1.1
 
-
 cat > /etc/default/docker.io <<EOF
-#Docker Upstart and SysVinit configuration file
-
-# Customize location of Docker binary (especially for development testing).
-#DOCKER="/usr/local/bin/docker"
-
-# Use DOCKER_OPTS to modify the daemon startup options.
-DOCKER_OPTS="-dns 8.8.8.8 -dns 8.8.4.4 -e lxc"
-
-# If you need Docker to use an HTTP proxy, it can also be specified here.
-#export http_proxy="http://127.0.0.1:3128/"
-
-# This is also a handy place to tweak where Docker's temporary files go.
-#export TMPDIR="/mnt/bigdrive/docker-tmp"
+  DOCKER_OPTS="-dns 8.8.8.8 -dns 8.8.4.4 -e lxc"
 EOF
 
 service docker restart
 
 adduser vagrant docker
 
-#####################################
-####### INSTALL RUBY ################
-#####################################
+## INSTALL RUBY ##############################################################
 
 echo "Installing ruby..."
 
 echo "export PATH=\\$HOME/.rbenv/shims:\\$PATH" >> /etc/profile
 sudo apt-get install -yy --no-install-recommends rbenv
+
 sudo -u vagrant bash <<EOF
   export HOME=$VAGRANT_HOME
   git clone https://github.com/sstephenson/ruby-build.git $VAGRANT_HOME/.rbenv/plugins/ruby-build
   rbenv install 2.1.2 && rbenv global 2.1.2
-  gem install bundler && rbenv rehash
+  rbenv exec gem install bundler && rbenv rehash
 EOF
 
-#####################################
-####### INSTALL NODE ################
-#####################################
+## INSTALL NODE ##############################################################
 
 echo "Installing node..."
 
 sudo apt-get install -yy --no-install-recommends nodejs
 
-###########################################
-####### INSTALL COMPONENTS ################
-###########################################
+## INSTALL COMPONENTS ########################################################
 
 echo "Installing components..."
 
 git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-ssh -T git@github.com -o StrictHostKeyChecking=no && echo 'Success'
+ssh -T git@github.com -o StrictHostKeyChecking=no
 
 install_component() {
   component=$1
-  if [ ! -d $component ]; then
-    (cd $GOPATH/src/github.com/nitrous-io && git clone git@github.com:nitrous-io/$component.git)
-    ln -fs $GOPATH/src/github.com/nitrous-io/$component $WORKSPACE/$component
-    (cd $WORKSPACE/$component && goop install)
-  fi
+
+  (cd $GOPATH/src/github.com/nitrous-io && rm -rf $component && git clone git@github.com:nitrous-io/$component.git)
+  ln -fs $GOPATH/src/github.com/nitrous-io/$component $WORKSPACE/$component
+  cd $WORKSPACE/$component && goop install
+
+  cat >/etc/init/$component.conf <<EOF
+
+    start on (net-device-up and local-filesystems and runlevel [2345])
+    stop on runlevel [06]
+
+    setuid vagrant
+    setgid vagrant
+
+    env GOPATH=$GOPATH
+    env GOROOT=$GOROOT
+    env PATH=/home/vagrant/.rbenv/shims:$PATH
+
+    chdir /home/vagrant/workspace/$component
+
+    exec make run
+
+    respawn
+
+EOF
 }
 
 mkdir -p $GOPATH/src/github.com/nitrous-io
@@ -138,21 +135,27 @@ install_component nitro
 sudo chown -R vagrant:vagrant $GOPATH
 sudo chown -R vagrant:vagrant $WORKSPACE
 
-########################################
-####### COMPONENT SETUP ################
-########################################
+## COMPONENT SETUP ###########################################################
 
 sudo -u vagrant bash <<EOF
+
+  export GOPATH=$GOPATH
+  export GOROOT=$GOROOT
+  export PATH=$PATH
 
   cd $WORKSPACE/hostbuilder
   cp sample_config.json config.json
 
   cd $WORKSPACE/nitrous
   cp .env-example .env
-  make createdb
+  goop exec make createdb seed
 
 EOF
 
+## LAUNCH SERVICES ###########################################################
+
+service hostbuilder start
+service nitrous start
 
 SCRIPT
 
@@ -176,6 +179,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if private_ip = ENV['DEDICATED_VM_INTERFACE']
     config.vm.network :private_network, ip: private_ip
   end
+
+  config.vm.network "forwarded_port", guest: 3000,  host: 3000
+  config.vm.network "forwarded_port", guest: 49153, host: 49153
 
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'" # avoids 'stdin: is not a tty' error.
   config.ssh.forward_agent = true
