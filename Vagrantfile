@@ -101,7 +101,7 @@ install_component() {
 
   (cd $GOPATH/src/github.com/nitrous-io && rm -rf $component && git clone git@github.com:nitrous-io/$component.git)
   ln -fs $GOPATH/src/github.com/nitrous-io/$component $WORKSPACE/$component
-  cd $WORKSPACE/$component && goop install
+  cd $WORKSPACE/$component && goop install && goop exec make build
 
   cat >/etc/init/$component.conf <<EOF
 
