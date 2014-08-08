@@ -75,11 +75,13 @@ echo "Installing ruby..."
 
 echo "export PATH=\\$HOME/.rbenv/shims:\\$PATH" >> /etc/profile
 sudo apt-get install -yy --no-install-recommends rbenv
+mkdir -p $VAGRANT_HOME/.rbenv/versions
+curl -s https://nitrous-ruby.s3.amazonaws.com/vagrant/ruby-2.1.2.tgz | tar -C $VAGRANT_HOME/.rbenv/versions -xz
+chown -R vagrant:vagrant $VAGRANT_HOME/.rbenv
 
 sudo -u vagrant bash <<EOF
   export HOME=$VAGRANT_HOME
-  git clone https://github.com/sstephenson/ruby-build.git $VAGRANT_HOME/.rbenv/plugins/ruby-build
-  rbenv install 2.1.2 && rbenv global 2.1.2
+  rbenv global 2.1.2
   rbenv exec gem install bundler && rbenv rehash
 EOF
 
