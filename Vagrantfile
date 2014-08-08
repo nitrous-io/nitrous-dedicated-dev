@@ -69,6 +69,8 @@ service docker restart
 
 adduser vagrant docker
 
+docker pull nitrousio/ubuntu-dind >/dev/null 2>&1 &
+
 ## INSTALL RUBY ##############################################################
 
 echo "Installing ruby..."
