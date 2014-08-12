@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+
+WORKSPACE=/home/vagrant/workspace
+
+for component in nitrous freighter hostbuilder nitro; do
+  echo "Installing $component"
+  cd $WORKSPACE/$component && goop install && goop exec make build
+done
+
+sudo service hostbuilder restart
+sudo service nitrous restart
+
+echo "Success!"
+
+# vi:ft=sh
