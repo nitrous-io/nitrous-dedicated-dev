@@ -75,7 +75,7 @@ docker pull nitrousio/ubuntu-dind >/dev/null 2>&1 &
 
 echo "Installing ruby..."
 
-echo "export PATH=\\$HOME/.rbenv/shims:\\$PATH" >> /etc/profile
+echo "export PATH=.bundle/binstubs:\\$HOME/.rbenv/shims:\\$PATH" >> /etc/profile
 sudo apt-get install -yy --no-install-recommends rbenv
 mkdir -p $VAGRANT_HOME/.rbenv/versions
 curl -s https://nitrous-ruby.s3.amazonaws.com/vagrant/ruby-2.1.2.tgz | tar -C $VAGRANT_HOME/.rbenv/versions -xz
@@ -83,6 +83,9 @@ chown -R vagrant:vagrant $VAGRANT_HOME/.rbenv
 
 sudo -u vagrant bash <<EOF
   export HOME=$VAGRANT_HOME
+  mkdir $HOME/.bundle
+  echo "BUNDLE_PATH: .bundle" > $HOME/.bundle/config
+  echo "BUNDLE_BIN: .bundle/binstubs" >> $HOME/.bundle/config
   rbenv global 2.1.2
   rbenv exec gem install bundler && rbenv rehash
 EOF
@@ -117,7 +120,7 @@ install_component() {
 
     env GOPATH=$GOPATH
     env GOROOT=$GOROOT
-    env PATH=/home/vagrant/.rbenv/shims:$PATH
+    env PATH=.bundle/binstubs:/home/vagrant/.rbenv/shims:$PATH
 
     chdir /home/vagrant/workspace/$component
 
