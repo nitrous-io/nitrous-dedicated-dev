@@ -61,8 +61,8 @@ apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8
 apt-get update
 apt-get install -yy lxc-docker-1.1.1
 
-cat > /etc/default/docker.io <<EOF
-  DOCKER_OPTS="-dns 8.8.8.8 -dns 8.8.4.4 -e lxc"
+cat > /etc/default/docker <<EOF
+  DOCKER_OPTS="-e lxc"
 EOF
 
 service docker restart
@@ -188,6 +188,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.network "forwarded_port", guest: 3000,  host: 3000
+  config.vm.network "forwarded_port", guest: 3333,  host: 3333
   config.vm.network "forwarded_port", guest: 49153, host: 49153
 
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'" # avoids 'stdin: is not a tty' error.
