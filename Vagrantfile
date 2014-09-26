@@ -123,9 +123,7 @@ install_component() {
     env GOROOT=$GOROOT
     env PATH=.bundle/binstubs:/home/vagrant/.rbenv/shims:$PATH
 
-    chdir /home/vagrant/workspace/$component
-
-    exec make run
+    exec /bin/bash -c "cd /home/vagrant/workspace/$component && make run"
 
     respawn
 
