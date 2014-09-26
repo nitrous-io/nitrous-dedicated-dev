@@ -16,6 +16,7 @@ export WORKSPACE=$VAGRANT_HOME/workspace
 echo "Installing apt dependencies..."
 
 apt-get update
+apt-get install -yy --only-upgrade libcgmanager0
 apt-get install -yy --no-install-recommends lxc build-essential curl git-core mercurial postgresql-9.3 postgresql-contrib-9.3 libpq-dev
 
 ## CONFIGURE POSTGRESQL ######################################################
