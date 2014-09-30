@@ -113,7 +113,7 @@ install_component() {
 
   cat >/etc/init/$component.conf <<EOF
 
-    start on (net-device-up and local-filesystems and runlevel [2345])
+    start on vagrant-mounted
     stop on runlevel [06]
 
     setuid vagrant
