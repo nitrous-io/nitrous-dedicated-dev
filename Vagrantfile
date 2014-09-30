@@ -11,25 +11,26 @@ export GOROOT=/usr/local/opt/go
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 export WORKSPACE=$VAGRANT_HOME/workspace
 
-## INSTALL APT DEPENDENCIES ##################################################
+## BASIC APT DEPENDENCIES ####################################################
 
-echo "Installing apt dependencies..."
+echo "Installing basic dependencies..."
 
 apt-get update
 apt-get install -yy --only-upgrade libcgmanager0
-apt-get install -yy --no-install-recommends lxc build-essential curl git-core mercurial postgresql-9.3 postgresql-contrib-9.3 libpq-dev
+apt-get install -yy --no-install-recommends lxc build-essential curl git-core mercurial
 
 ## CONFIGURE POSTGRESQL ######################################################
 
-echo "Configuring postgres..."
+echo "Installing postgres..."
 
+apt-get install -yy postgresql-9.3 postgresql-contrib-9.3 libpq-dev
 sudo su postgres -c 'psql -c "CREATE ROLE vagrant NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN;"'
 
 ## CONFIGURE MERCURIAL #######################################################
 
 echo "Configuring mercurial..."
 
-cat >$HOME/.hgrc <<EOF
+cat > $HOME/.hgrc <<EOF
 [trusted]
 users = vagrant
 groups = vagrant
@@ -60,7 +61,7 @@ apt-get install -y apt-transport-https
 echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
 apt-get update
-apt-get install -yy lxc-docker-1.1.1
+apt-get install -yy lxc-docker-1.2.0
 
 cat > /etc/default/docker <<EOF
   DOCKER_OPTS="-e lxc"
@@ -71,6 +72,7 @@ service docker restart
 adduser vagrant docker
 
 docker pull nitrousio/ubuntu-dind >/dev/null 2>&1 &
+sudo chown -R vagrant:vagrant /var/lib/docker
 
 ## INSTALL RUBY ##############################################################
 
@@ -138,6 +140,8 @@ install_component freighter
 install_component hostbuilder
 install_component nitro
 
+sed -i 's/make run/make run-dev/' /etc/init/nitrous.conf
+
 sudo chown -R vagrant:vagrant $GOPATH
 sudo chown -R vagrant:vagrant $WORKSPACE
 
@@ -158,10 +162,62 @@ sudo -u vagrant bash <<EOF
 
 EOF
 
+## CONFIGURE NGINX ###########################################################
+
+apt-get install -yy nginx
+
+cat > /etc/nginx/nginx.conf <<EOF
+user www-data;
+worker_processes 6;
+pid /run/nginx.pid;
+
+events {
+  worker_connections 768;
+  # multi_accept on;
+}
+
+http {
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+
+  access_log /var/log/nginx/access.log;
+  error_log /var/log/nginx/error.log;
+
+  sendfile on;
+
+  map \\$http_upgrade \\$connection_upgrade {
+    default upgrade;
+    ''      close;
+  }
+
+  server {
+    listen 8080 ssl;
+
+    server_name pro.n2odev.com;
+    ssl_certificate /home/vagrant/workspace/nitrous/dev/n2odev.crt;
+    ssl_certificate_key /home/vagrant/workspace/nitrous/dev/n2odev.key;
+
+    keepalive_timeout 70;
+
+    location / {
+      proxy_pass http://127.0.0.1:3000;
+    }
+
+    location /api/v0/ {
+      proxy_pass http://127.0.0.1:3333;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade \\$http_upgrade;
+      proxy_set_header Connection \\$connection_upgrade;
+    }
+  }
+}
+EOF
+
 ## LAUNCH SERVICES ###########################################################
 
 service hostbuilder start
 service nitrous start
+service nginx restart
 
 SCRIPT
 
@@ -186,9 +242,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.network :private_network, ip: private_ip
   end
 
-  config.vm.network "forwarded_port", guest: 3000,  host: 3000
-  config.vm.network "forwarded_port", guest: 3333,  host: 3333
-  config.vm.network "forwarded_port", guest: 49153, host: 49153
+  config.vm.network "forwarded_port", guest: 8080,  host: 8080
+
+  (49000..49999).each do |port|
+    config.vm.network "forwarded_port", guest: port, host: port
+  end
 
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'" # avoids 'stdin: is not a tty' error.
   config.ssh.forward_agent = true
