@@ -165,6 +165,28 @@ service nitrous start
 
 SCRIPT
 
+require 'socket'
+require 'timeout'
+
+def port_open?(ip, port)
+  begin
+    Timeout::timeout(1) do
+      begin
+        s = TCPSocket.new(ip, port)
+        s.close
+        return true
+      rescue Errno::ECONNREFUSED
+        return false
+      end
+    end
+  rescue Timeout::Error
+  end
+
+  return false
+end
+
+mtmfs_in_use = port_open?("127.0.0.1", 49153)
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.hostname = 'dedicated-vm'
   config.vm.box = 'nitrous-io/trusty64'
@@ -188,7 +210,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.network "forwarded_port", guest: 3000,  host: 3000
   config.vm.network "forwarded_port", guest: 3333,  host: 3333
-  config.vm.network "forwarded_port", guest: 49153, host: 49153
+  config.vm.network "forwarded_port", guest: 49153, host: mtmfs_in_use ? 49154 : 49153
 
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'" # avoids 'stdin: is not a tty' error.
   config.ssh.forward_agent = true
