@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+psql -d nitrous_development -c "UPDATE user_profiles SET max_hosts = 9999;"
